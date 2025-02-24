@@ -1,0 +1,221 @@
+openapi: 3.0.3
+info:
+  title: Recipe API
+  version: "1.0.0"
+  description: API para gestionar recetas culinarias
+servers:
+  - url: http://localhost:8080/api
+    description: Servidor de la API en localhost
+  - url: jdbc:postgresql://localhost:5432/recipe
+    description: Conexión a la base de datos PostgreSQL
+tags:
+  - name: Recipes
+    description: Operaciones relacionadas con recetas culinarias
+paths:
+  /recipes:
+    get:
+      tags:
+        - Recipes
+      summary: Lista todas las recetas
+      operationId: getRecipes
+      responses:
+        '200':
+          $ref: '#/components/responses/RecipesListResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+    post:
+      tags:
+        - Recipes
+      summary: Crea una nueva receta
+      operationId: createRecipe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeInput'
+      responses:
+        '201':
+          description: Receta creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeOutput'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /recipes/{id}:
+    get:
+      tags:
+        - Recipes
+      summary: Obtiene una receta por ID
+      operationId: getRecipeById
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      responses:
+        '200':
+          $ref: '#/components/responses/RecipeResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+    put:
+      tags:
+        - Recipes
+      summary: Actualiza una receta existente
+      operationId: updateRecipe
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeInput'
+      responses:
+        '200':
+          description: Receta actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeOutput'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+    delete:
+      tags:
+        - Recipes
+      summary: Elimina una receta
+      operationId: deleteRecipe
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      responses:
+        '204':
+          description: Receta eliminada exitosamente
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /recipes/search:
+    get:
+      tags:
+        - Recipes
+      summary: Busca recetas por nombre
+      operationId: searchRecipesByName
+      parameters:
+        - name: name
+          in: query
+          description: Nombre parcial o completo de la receta a buscar
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/RecipesListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+components:
+  parameters:
+    RecipeId:
+      name: id
+      in: path
+      description: ID numérico de la receta
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+  responses:
+    RecipeResponse:
+      description: Receta obtenida exitosamente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RecipeOutput'
+
+    RecipesListResponse:
+      description: Lista de recetas obtenida exitosamente
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/RecipeOutput'
+
+    BadRequestResponse:
+      description: Solicitud inválida debido a datos incorrectos
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Los datos enviados son inválidos"
+
+    NotFoundResponse:
+      description: El recurso solicitado no fue encontrado
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Receta no encontrada"
+
+    InternalServerErrorResponse:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Error interno del servidor. Inténtalo más tarde."
+
+  schemas:
+    RecipeInput:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Pastel de Chocolate"
+          description: Nombre de la receta
+        description:
+          type: string
+          example: "Deliciosa receta de pastel de chocolate con un toque especial."
+          description: Descripción de la receta
+        ingredients:
+          type: array
+          items:
+            type: string
+          example: ["Harina", "Azúcar", "Cacao", "Huevos"]
+          description: Lista de ingredientes
+      required:
+        - title
+        - description
+        - ingredients
+
+    RecipeOutput:
+      allOf:
+        - $ref: '#/components/schemas/RecipeInput'
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+              description: Identificador único de la receta
