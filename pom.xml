@@ -105,7 +105,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<inputSpec>${project.basedir}/src/main/resources/recipe-api.yaml</inputSpec>
+					<inputSpec>${project.basedir}/manifest/recipe-api.yaml</inputSpec>
 					<generatorName>spring</generatorName>
 					<output>${project.build.directory}/generated-sources/openapi</output>
 					<apiPackage>com.estebanst99.api.controller</apiPackage>
